@@ -426,26 +426,42 @@
     const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
     function createLogElement(log) {
-        const date = new Date(log.created_at);
-        const timeStr = date.toLocaleTimeString('en-US', { hour12: false });
-        const p = log.payload || {};
-        const username = p.username || 'UNKNOWN';
-        const details = p.reason || p.msg || JSON.stringify(p);
-        const type = log.log_type === 'Match' ? 'match' : 'anti';
+    const p = log.payload;
+    if (log.log_type !== 'Match') return createStandardLog(log); // Fallback for Anti-logs
 
-        const div = document.createElement('div');
-        div.className = `log-entry ${type}`;
-        div.innerHTML = `
-            <div class="log-top">
-                <span class="log-user">${username}</span>
-                <span class="log-time">${timeStr}</span>
-            </div>
-            <div class="log-body">
-                <span class="prefix">&gt; </span>${details}
+    // Build the Team HTML
+    let teamsHtml = "";
+    for (const [teamName, players] of Object.entries(p.teams)) {
+        teamsHtml += `
+            <div class="flex-1">
+                <h3 class="text-xs font-bold text-slate-500 mb-2 uppercase">${teamName}</h3>
+                <div class="space-y-2">
+                    ${players.map(player => `
+                        <div class="flex items-center gap-3 bg-black/30 p-2 rounded border-r-4" style="border-color: ${player.tierColor}">
+                            <img src="${player.image}" class="w-8 h-8 rounded bg-slate-800" onerror="this.src='https://tr.rbxcdn.com/30DAY-AvatarHeadshot-Png/150/150/AvatarHeadshot/Png/Regular'">
+                            <div class="flex-1">
+                                <div class="text-sm font-bold">${player.username}</div>
+                                <div class="text-[10px] text-slate-400">K: ${player.kills} | D: ${player.deaths}</div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
             </div>
         `;
-        return div;
     }
+
+    return `
+        <div class="glass p-6 rounded-xl border-t-2 border-blue-500/50 shadow-2xl">
+            <div class="flex justify-between items-center mb-6">
+                <div class="text-lg font-black tracking-tighter">${p.title}</div>
+                <div class="bg-blue-600 px-3 py-1 rounded text-xl font-mono font-bold">${p.score}</div>
+            </div>
+            <div class="flex gap-6">
+                ${teamsHtml}
+            </div>
+        </div>
+    `;
+}
 
     async function fetchLogs() {
         const { data, error } = await db
