@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus Log Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { background-color: #0f172a; color: #f8fafc; font-family: 'Inter', sans-serif; }
+        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
+        .log-card { transition: transform 0.2s; }
+        .log-card:hover { transform: translateY(-2px); }
+    </style>
+</head>
+<body class="p-8">
+    <div class="max-w-6xl mx-auto">
+        <header class="mb-10 flex justify-between items-center">
+            <h1 class="text-3xl font-bold tracking-tight text-blue-400">NEXUS <span class="text-slate-100">LOGS</span></h1>
+            <div class="text-sm bg-blue-500/10 text-blue-400 px-4 py-2 rounded-full border border-blue-500/20">Live Monitoring Active</div>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <section>
+                <h2 class="text-xl font-semibold mb-4 flex items-center gap-2">
+                    <span class="w-2 h-2 bg-green-500 rounded-full"></span> Match Logs
+                </h2>
+                <div id="match-logs" class="space-y-4">
+                    </div>
+            </section>
+
+            <section>
+                <h2 class="text-xl font-semibold mb-4 flex items-center gap-2">
+                    <span class="w-2 h-2 bg-red-500 rounded-full"></span> Anti-Cheat Triggers
+                </h2>
+                <div id="anti-logs" class="space-y-4">
+                    </div>
+            </section>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://your-project-id.supabase.co';
+        const SUPABASE_KEY = 'your-anon-key';
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        function createLogElement(log) {
+            const date = new Date(log.created_at).toLocaleTimeString();
+            const color = log.log_type === 'Match' ? 'border-l-green-500' : 'border-l-red-500';
+            
+            return `
+                <div class="glass p-4 rounded-lg log-card border-l-4 ${color}">
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="font-bold text-blue-300">${log.username} <span class="text-slate-500 text-xs">[${log.user_id}]</span></span>
+                        <span class="text-xs text-slate-500">${date}</span>
+                    </div>
+                    <p class="text-sm text-slate-300 leading-relaxed">${log.content}</p>
+                </div>
+            `;
+        }
+
+        async function fetchLogs() {
+            const { data, error } = await supabase
+                .from('logs')
+                .select('*')
+                .order('created_at', { ascending: false })
+                .limit(20);
+
+            if (data) {
+                const matchContainer = document.getElementById('match-logs');
+                const antiContainer = document.getElementById('anti-logs');
+                
+                matchContainer.innerHTML = '';
+                antiContainer.innerHTML = '';
+
+                data.forEach(log => {
+                    if (log.log_type === 'Match') {
+                        matchContainer.innerHTML += createLogElement(log);
+                    } else {
+                        antiContainer.innerHTML += createLogElement(log);
+                    }
+                });
+            }
+        }
+
+        // Real-time subscription
+        supabase
+            .channel('schema-db-changes')
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'logs' }, payload => {
+                fetchLogs();
+            })
+            .subscribe();
+
+        fetchLogs();
+    </script>
+</body>
+</html>
