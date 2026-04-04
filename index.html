@@ -9,375 +9,87 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
         :root {
-            --bg: #080c10;
-            --surface: #0d1117;
-            --surface2: #111820;
-            --border: rgba(0, 255, 170, 0.12);
-            --border-bright: rgba(0, 255, 170, 0.35);
-            --accent: #00ffaa;
-            --accent-dim: rgba(0, 255, 170, 0.6);
-            --danger: #ff4060;
-            --danger-dim: rgba(255, 64, 96, 0.6);
-            --text: #c8d8e8;
-            --text-dim: #5a7a8a;
-            --text-bright: #eaf4ff;
-            --mono: 'Space Mono', monospace;
-            --display: 'Syne', sans-serif;
+            --bg: #080c10; --surface: #0d1117; --surface2: #111820;
+            --border: rgba(0, 255, 170, 0.12); --accent: #00ffaa; --danger: #ff4060;
+            --text: #c8d8e8; --text-dim: #5a7a8a; --text-bright: #eaf4ff;
+            --mono: 'Space Mono', monospace; --display: 'Syne', sans-serif;
         }
-
-        body {
-            background: var(--bg);
-            color: var(--text);
-            font-family: var(--mono);
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-
-        /* scanline overlay */
-        body::before {
-            content: '';
-            position: fixed;
-            inset: 0;
-            background: repeating-linear-gradient(
-                0deg,
-                transparent,
-                transparent 2px,
-                rgba(0,0,0,0.15) 2px,
-                rgba(0,0,0,0.15) 4px
-            );
-            pointer-events: none;
-            z-index: 9999;
-        }
-
-        /* grid bg */
-        body::after {
-            content: '';
-            position: fixed;
-            inset: 0;
-            background-image:
-                linear-gradient(rgba(0,255,170,0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0,255,170,0.03) 1px, transparent 1px);
-            background-size: 40px 40px;
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        .wrapper {
-            position: relative;
-            z-index: 1;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 2rem 2rem 4rem;
-        }
-
-        /* ── HEADER ── */
-        header {
-            display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
-            margin-bottom: 3rem;
-            padding-bottom: 1.5rem;
-            border-bottom: 1px solid var(--border);
-            gap: 1rem;
-            flex-wrap: wrap;
-        }
-
-        .logo-block {}
-        .logo-eyebrow {
-            font-family: var(--mono);
-            font-size: 10px;
-            letter-spacing: 0.3em;
-            color: var(--text-dim);
-            margin-bottom: 6px;
-        }
-
-        .logo {
-            font-family: var(--display);
-            font-weight: 800;
-            font-size: 2.4rem;
-            letter-spacing: -0.02em;
-            line-height: 1;
-            color: var(--text-bright);
-        }
-        .logo span {
-            color: var(--accent);
-            text-shadow: 0 0 20px rgba(0,255,170,0.4);
-        }
-
-        .header-right {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            gap: 8px;
-        }
-
-        .status-pill {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 11px;
-            letter-spacing: 0.12em;
-            color: var(--accent);
-            background: rgba(0,255,170,0.06);
-            border: 1px solid rgba(0,255,170,0.2);
-            padding: 6px 14px;
-            border-radius: 2px;
-        }
-
-        .pulse {
-            width: 7px;
-            height: 7px;
-            border-radius: 50%;
-            background: var(--accent);
-            animation: pulse 1.8s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(0,255,170,0.4); }
-            50% { opacity: 0.6; box-shadow: 0 0 0 5px rgba(0,255,170,0); }
-        }
-
-        .clock {
-            font-size: 11px;
-            color: var(--text-dim);
-            letter-spacing: 0.08em;
-        }
-
-        /* ── STATS BAR ── */
-        .stats-bar {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 1px;
-            background: var(--border);
-            border: 1px solid var(--border);
-            margin-bottom: 2.5rem;
-        }
-
-        .stat {
-            background: var(--surface);
-            padding: 1rem 1.25rem;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .stat-label {
-            font-size: 9px;
-            letter-spacing: 0.25em;
-            color: var(--text-dim);
-            text-transform: uppercase;
-        }
-
-        .stat-value {
-            font-family: var(--display);
-            font-size: 1.6rem;
-            font-weight: 700;
-            color: var(--text-bright);
-            line-height: 1;
-        }
-
+        body { background: var(--bg); color: var(--text); font-family: var(--mono); min-height: 100vh; overflow-x: hidden; }
+        body::before { content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 9999; background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.12) 2px, rgba(0,0,0,0.12) 4px); }
+        body::after { content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0; background-image: linear-gradient(rgba(0,255,170,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,170,0.03) 1px, transparent 1px); background-size: 40px 40px; }
+        .wrapper { position: relative; z-index: 1; max-width: 1200px; margin: 0 auto; padding: 2rem 2rem 4rem; }
+        header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 2.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border); gap: 1rem; flex-wrap: wrap; }
+        .logo-eyebrow { font-size: 10px; letter-spacing: 0.3em; color: var(--text-dim); margin-bottom: 6px; }
+        .logo { font-family: var(--display); font-weight: 800; font-size: 2.4rem; letter-spacing: -0.02em; line-height: 1; color: var(--text-bright); }
+        .logo span { color: var(--accent); text-shadow: 0 0 20px rgba(0,255,170,0.4); }
+        .header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+        .status-pill { display: flex; align-items: center; gap: 8px; font-size: 11px; letter-spacing: 0.12em; color: var(--accent); background: rgba(0,255,170,0.06); border: 1px solid rgba(0,255,170,0.2); padding: 6px 14px; border-radius: 2px; }
+        .pulse { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); animation: pulseG 1.8s ease-in-out infinite; }
+        @keyframes pulseG { 0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(0,255,170,0.4)}50%{opacity:.6;box-shadow:0 0 0 5px rgba(0,255,170,0)}}
+        @keyframes pulseR { 0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(255,64,96,0.5)}50%{opacity:.7;box-shadow:0 0 0 5px rgba(255,64,96,0)}}
+        .clock { font-size: 11px; color: var(--text-dim); letter-spacing: 0.08em; }
+        .stats-bar { display: grid; grid-template-columns: repeat(4,1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); margin-bottom: 2.5rem; }
+        .stat { background: var(--surface); padding: 1rem 1.25rem; display: flex; flex-direction: column; gap: 4px; }
+        .stat-label { font-size: 9px; letter-spacing: 0.25em; color: var(--text-dim); text-transform: uppercase; }
+        .stat-value { font-family: var(--display); font-size: 1.6rem; font-weight: 700; color: var(--text-bright); line-height: 1; }
         .stat-value.accent { color: var(--accent); text-shadow: 0 0 12px rgba(0,255,170,0.3); }
         .stat-value.danger { color: var(--danger); text-shadow: 0 0 12px rgba(255,64,96,0.3); }
-
-        /* ── COLUMNS ── */
-        .columns {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1.5rem;
-        }
-
-        @media (max-width: 720px) {
-            .columns { grid-template-columns: 1fr; }
-            .stats-bar { grid-template-columns: repeat(2, 1fr); }
-        }
-
-        .col-header {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 1rem;
-            padding-bottom: 0.75rem;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .col-title {
-            font-family: var(--display);
-            font-weight: 700;
-            font-size: 0.85rem;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-        }
-
-        .col-title.match { color: var(--accent); }
-        .col-title.anti { color: var(--danger); }
-
-        .col-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            flex-shrink: 0;
-        }
-        .col-dot.match { background: var(--accent); animation: pulse 2s ease-in-out infinite; }
-        .col-dot.anti { background: var(--danger); animation: pulse-red 1.4s ease-in-out infinite; }
-
-        @keyframes pulse-red {
-            0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(255,64,96,0.5); }
-            50% { opacity: 0.7; box-shadow: 0 0 0 5px rgba(255,64,96,0); }
-        }
-
-        .col-count {
-            margin-left: auto;
-            font-size: 10px;
-            color: var(--text-dim);
-            letter-spacing: 0.15em;
-        }
-
-        /* ── LOG CARDS ── */
-        #match-logs, #anti-logs {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            min-height: 100px;
-        }
-
-        .log-entry {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-left: 3px solid transparent;
-            padding: 12px 14px;
-            animation: slideIn 0.3s ease;
-            transition: border-color 0.2s, background 0.2s;
-            cursor: default;
-        }
-
-        .log-entry:hover {
-            background: var(--surface2);
-        }
-
-        .log-entry.match {
-            border-left-color: var(--accent);
-        }
-
-        .log-entry.match:hover {
-            border-color: rgba(0,255,170,0.25);
-            border-left-color: var(--accent);
-        }
-
-        .log-entry.anti {
-            border-left-color: var(--danger);
-        }
-
-        .log-entry.anti:hover {
-            border-color: rgba(255,64,96,0.25);
-            border-left-color: var(--danger);
-        }
-
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateX(-8px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
-
-        .log-top {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 8px;
-            gap: 8px;
-        }
-
-        .log-user {
-            font-family: var(--display);
-            font-size: 0.85rem;
-            font-weight: 700;
-            color: var(--text-bright);
-            letter-spacing: 0.02em;
-        }
-
-        .log-time {
-            font-size: 10px;
-            color: var(--text-dim);
-            letter-spacing: 0.08em;
-            white-space: nowrap;
-        }
-
-        .log-body {
-            font-size: 11px;
-            line-height: 1.6;
-            color: #7fa8c0;
-            background: rgba(0,0,0,0.3);
-            border: 1px solid rgba(255,255,255,0.04);
-            padding: 8px 10px;
-            font-family: var(--mono);
-            word-break: break-all;
-        }
-
-        .log-body .prefix {
-            color: var(--text-dim);
-            user-select: none;
-        }
-
-        /* ── EMPTY STATE ── */
-        .empty-state {
-            font-size: 11px;
-            letter-spacing: 0.15em;
-            color: var(--text-dim);
-            text-align: center;
-            padding: 2rem 1rem;
-            border: 1px dashed var(--border);
-        }
-
-        /* ── FOOTER ── */
-        footer {
-            margin-top: 3rem;
-            padding-top: 1.5rem;
-            border-top: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 10px;
-            color: var(--text-dim);
-            letter-spacing: 0.15em;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
+        .stat-value.small { font-size: 1rem; padding-top: 4px; }
+        .columns { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+        @media(max-width:720px){.columns{grid-template-columns:1fr}.stats-bar{grid-template-columns:repeat(2,1fr)}}
+        .col-header { display: flex; align-items: center; gap: 10px; margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border); }
+        .col-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+        .col-dot.match { background: var(--accent); animation: pulseG 2s ease-in-out infinite; }
+        .col-dot.anti { background: var(--danger); animation: pulseR 1.4s ease-in-out infinite; }
+        .col-title { font-family: var(--display); font-weight: 700; font-size: 0.85rem; letter-spacing: 0.1em; text-transform: uppercase; }
+        .col-title.match { color: var(--accent); } .col-title.anti { color: var(--danger); }
+        .col-count { margin-left: auto; font-size: 10px; color: var(--text-dim); letter-spacing: 0.15em; }
+        #match-logs, #anti-logs { display: flex; flex-direction: column; gap: 8px; min-height: 100px; }
+        @keyframes slideIn { from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:translateX(0)} }
+        /* Anti log */
+        .log-entry { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--danger); padding: 12px 14px; animation: slideIn 0.3s ease; transition: background 0.2s; }
+        .log-entry:hover { background: var(--surface2); }
+        .log-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; gap: 8px; }
+        .log-user { font-family: var(--display); font-size: 0.85rem; font-weight: 700; color: var(--text-bright); }
+        .log-time { font-size: 10px; color: var(--text-dim); letter-spacing: 0.08em; white-space: nowrap; }
+        .log-body { font-size: 11px; line-height: 1.6; color: #7fa8c0; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.04); padding: 8px 10px; word-break: break-all; }
+        .log-body .prefix { color: var(--text-dim); user-select: none; }
+        /* Match card */
+        .match-card { background: var(--surface); border: 1px solid rgba(0,255,170,0.15); border-top: 2px solid var(--accent); padding: 14px; animation: slideIn 0.3s ease; }
+        .match-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 6px; }
+        .match-title { font-family: var(--display); font-weight: 700; font-size: 0.88rem; color: var(--text-bright); }
+        .match-meta { display: flex; align-items: center; gap: 8px; }
+        .match-score { background: rgba(0,255,170,0.1); border: 1px solid rgba(0,255,170,0.3); color: var(--accent); font-family: var(--mono); font-size: 0.95rem; font-weight: 700; padding: 2px 10px; }
+        .match-time { font-size: 10px; color: var(--text-dim); }
+        .teams-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .team-block { background: rgba(0,0,0,0.2); padding: 8px; }
+        .team-name { font-size: 9px; letter-spacing: 0.2em; color: var(--text-dim); text-transform: uppercase; margin-bottom: 6px; }
+        .player-row { display: flex; align-items: center; gap: 8px; padding: 5px 6px; margin-bottom: 4px; border-left: 2px solid; background: rgba(0,0,0,0.2); }
+        .player-name { font-size: 11px; font-weight: 700; color: var(--text-bright); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .player-stats { font-size: 10px; color: var(--text-dim); white-space: nowrap; }
+        .empty-state { font-size: 11px; letter-spacing: 0.15em; color: var(--text-dim); text-align: center; padding: 2rem 1rem; border: 1px dashed var(--border); }
+        footer { margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border); display: flex; justify-content: space-between; font-size: 10px; color: var(--text-dim); letter-spacing: 0.15em; flex-wrap: wrap; gap: 8px; }
     </style>
 </head>
 <body>
 <div class="wrapper">
-
     <header>
-        <div class="logo-block">
+        <div>
             <div class="logo-eyebrow">// SYSTEM MONITOR v2.4.1</div>
             <div class="logo">NEX<span>US</span> LOGS</div>
         </div>
         <div class="header-right">
-            <div class="status-pill">
-                <div class="pulse"></div>
-                LIVE MONITORING ACTIVE
-            </div>
+            <div class="status-pill"><div class="pulse"></div>LIVE MONITORING ACTIVE</div>
             <div class="clock" id="clock">--:--:--</div>
         </div>
     </header>
 
     <div class="stats-bar">
-        <div class="stat">
-            <span class="stat-label">Match Events</span>
-            <span class="stat-value accent" id="stat-match">0</span>
-        </div>
-        <div class="stat">
-            <span class="stat-label">Anti-Cheat Triggers</span>
-            <span class="stat-value danger" id="stat-anti">0</span>
-        </div>
-        <div class="stat">
-            <span class="stat-label">Total Events</span>
-            <span class="stat-value" id="stat-total">0</span>
-        </div>
-        <div class="stat">
-            <span class="stat-label">Last Updated</span>
-            <span class="stat-value" style="font-size:1rem;padding-top:4px;" id="stat-time">—</span>
-        </div>
+        <div class="stat"><span class="stat-label">Match Events</span><span class="stat-value accent" id="stat-match">0</span></div>
+        <div class="stat"><span class="stat-label">Anti-Cheat Triggers</span><span class="stat-value danger" id="stat-anti">0</span></div>
+        <div class="stat"><span class="stat-label">Total Events</span><span class="stat-value" id="stat-total">0</span></div>
+        <div class="stat"><span class="stat-label">Last Updated</span><span class="stat-value small" id="stat-time">—</span></div>
     </div>
 
     <div class="columns">
@@ -387,20 +99,15 @@
                 <span class="col-title match">Match Logs</span>
                 <span class="col-count" id="match-count">0 entries</span>
             </div>
-            <div id="match-logs">
-                <div class="empty-state">AWAITING DATA STREAM...</div>
-            </div>
+            <div id="match-logs"><div class="empty-state">AWAITING DATA STREAM...</div></div>
         </section>
-
         <section>
             <div class="col-header">
                 <div class="col-dot anti"></div>
                 <span class="col-title anti">Anti-Cheat Triggers</span>
                 <span class="col-count" id="anti-count">0 entries</span>
             </div>
-            <div id="anti-logs">
-                <div class="empty-state">AWAITING DATA STREAM...</div>
-            </div>
+            <div id="anti-logs"><div class="empty-state">AWAITING DATA STREAM...</div></div>
         </section>
     </div>
 
@@ -408,7 +115,6 @@
         <span>NEXUS SECURITY PLATFORM // ROBLOX ANTI-CHEAT</span>
         <span id="footer-status">SUPABASE REALTIME // CONNECTED</span>
     </footer>
-
 </div>
 
 <script>
@@ -423,46 +129,68 @@ const db = createClient(
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkenVxcG9xbnB3dHB5b2FhYmJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzMjY2MTEsImV4cCI6MjA5MDkwMjYxMX0.lilUJmguaQtOjTL61xrC73lm9ReLpIIXMWGXhWVF5bs'
 );
 
-function createStandardLog(log) {
+function fmt(iso) {
+    return new Date(iso).toLocaleTimeString('en-US', { hour12: false });
+}
+
+function antiLog(log) {
     const p = log.payload || {};
-    const time = new Date(log.created_at).toLocaleTimeString('en-US', { hour12: false });
-    const details = p.reason || p.msg || JSON.stringify(p);
-    const type = log.log_type === 'Match' ? 'match' : 'anti';
-    return `<div class="log-entry ${type}">
-        <div class="log-top"><span class="log-user">${p.username || 'UNKNOWN'}</span><span class="log-time">${time}</span></div>
-        <div class="log-body"><span class="prefix">&gt; </span>${details}</div>
+    return `<div class="log-entry">
+        <div class="log-top">
+            <span class="log-user">${p.username || 'UNKNOWN'}</span>
+            <span class="log-time">${fmt(log.created_at)}</span>
+        </div>
+        <div class="log-body"><span class="prefix">&gt; </span>${p.reason || p.msg || JSON.stringify(p)}</div>
     </div>`;
 }
 
-function createLogElement(log) {
-    if (log.log_type !== 'Match') return createStandardLog(log);
+function matchLog(log) {
     const p = log.payload || {};
     let teamsHtml = '';
-    for (const [teamName, players] of Object.entries(p.teams || {})) {
-        teamsHtml += `<div class="flex-1"><h3 class="text-xs font-bold text-slate-500 mb-2 uppercase">${teamName}</h3><div class="space-y-2">
-            ${players.map(pl => `<div class="flex items-center gap-3 bg-black/30 p-2 rounded border-r-4" style="border-color:${pl.tierColor}">
-                <div><div class="text-sm font-bold">${pl.username}</div><div class="text-[10px] text-slate-400">K:${pl.kills} D:${pl.deaths}</div></div>
+    for (const [name, players] of Object.entries(p.teams || {})) {
+        teamsHtml += `<div class="team-block"><div class="team-name">${name}</div>
+            ${(players || []).map(pl => `<div class="player-row" style="border-left-color:${pl.tierColor||'#00ffaa'}">
+                <span class="player-name">${pl.username}</span>
+                <span class="player-stats">K:${pl.kills??0} D:${pl.deaths??0}</span>
             </div>`).join('')}
-        </div></div>`;
+        </div>`;
     }
-    return `<div class="glass p-6 rounded-xl border-t-2 border-blue-500/50 shadow-2xl">
-        <div class="flex justify-between items-center mb-6">
-            <div class="text-lg font-black">${p.title}</div>
-            <div class="bg-blue-600 px-3 py-1 rounded text-xl font-mono font-bold">${p.score}</div>
+    return `<div class="match-card">
+        <div class="match-card-header">
+            <span class="match-title">${p.title || 'MATCH RESULT'}</span>
+            <div class="match-meta">
+                <span class="match-score">${p.score || '—'}</span>
+                <span class="match-time">${fmt(log.created_at)}</span>
+            </div>
         </div>
-        <div class="flex gap-6">${teamsHtml}</div>
+        <div class="teams-grid">${teamsHtml}</div>
     </div>`;
 }
 
 async function fetchLogs() {
     const { data, error } = await db.from('logs').select('*').order('created_at', { ascending: false }).limit(20);
+    if (error) { document.getElementById('footer-status').textContent = 'ERROR: ' + error.message; return; }
     if (!data) return;
+
     const matchEl = document.getElementById('match-logs');
     const antiEl = document.getElementById('anti-logs');
     matchEl.innerHTML = ''; antiEl.innerHTML = '';
-    data.forEach(log => {
-        (log.log_type === 'Match' ? matchEl : antiEl).insertAdjacentHTML('beforeend', createLogElement(log));
-    });
+
+    const matches = data.filter(l => l.log_type === 'Match');
+    const antis   = data.filter(l => l.log_type !== 'Match');
+
+    if (!matches.length) matchEl.innerHTML = '<div class="empty-state">NO MATCH EVENTS LOGGED</div>';
+    if (!antis.length)   antiEl.innerHTML  = '<div class="empty-state">NO TRIGGERS DETECTED</div>';
+
+    matches.forEach(l => matchEl.insertAdjacentHTML('beforeend', matchLog(l)));
+    antis.forEach(l   => antiEl.insertAdjacentHTML('beforeend',  antiLog(l)));
+
+    document.getElementById('stat-match').textContent  = matches.length;
+    document.getElementById('stat-anti').textContent   = antis.length;
+    document.getElementById('stat-total').textContent  = data.length;
+    document.getElementById('match-count').textContent = matches.length + ' entries';
+    document.getElementById('anti-count').textContent  = antis.length + ' entries';
+    document.getElementById('stat-time').textContent   = new Date().toLocaleTimeString('en-US', { hour12: false });
 }
 
 db.channel('schema-db-changes')
