@@ -411,94 +411,65 @@
 </div>
 
 <script>
-    // Clock
-    function updateClock() {
-        const now = new Date();
-        document.getElementById('clock').textContent = now.toLocaleTimeString('en-US', { hour12: false });
+function updateClock() {
+    document.getElementById('clock').textContent = new Date().toLocaleTimeString('en-US', { hour12: false });
+}
+updateClock(); setInterval(updateClock, 1000);
+
+const { createClient } = supabase;
+const db = createClient(
+    'https://kdzuqpoqnpwtpyoaabbx.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkenVxcG9xbnB3dHB5b2FhYmJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzMjY2MTEsImV4cCI6MjA5MDkwMjYxMX0.lilUJmguaQtOjTL61xrC73lm9ReLpIIXMWGXhWVF5bs'
+);
+
+function createStandardLog(log) {
+    const p = log.payload || {};
+    const time = new Date(log.created_at).toLocaleTimeString('en-US', { hour12: false });
+    const details = p.reason || p.msg || JSON.stringify(p);
+    const type = log.log_type === 'Match' ? 'match' : 'anti';
+    return `<div class="log-entry ${type}">
+        <div class="log-top"><span class="log-user">${p.username || 'UNKNOWN'}</span><span class="log-time">${time}</span></div>
+        <div class="log-body"><span class="prefix">&gt; </span>${details}</div>
+    </div>`;
+}
+
+function createLogElement(log) {
+    if (log.log_type !== 'Match') return createStandardLog(log);
+    const p = log.payload || {};
+    let teamsHtml = '';
+    for (const [teamName, players] of Object.entries(p.teams || {})) {
+        teamsHtml += `<div class="flex-1"><h3 class="text-xs font-bold text-slate-500 mb-2 uppercase">${teamName}</h3><div class="space-y-2">
+            ${players.map(pl => `<div class="flex items-center gap-3 bg-black/30 p-2 rounded border-r-4" style="border-color:${pl.tierColor}">
+                <img src="${pl.image}" class="w-8 h-8 rounded bg-slate-800" onerror="this.src='https://tr.rbxcdn.com/30DAY-AvatarHeadshot-Png/150/150/AvatarHeadshot/Png/Regular'">
+                <div><div class="text-sm font-bold">${pl.username}</div><div class="text-[10px] text-slate-400">K:${pl.kills} D:${pl.deaths}</div></div>
+            </div>`).join('')}
+        </div></div>`;
     }
-    updateClock();
-    setInterval(updateClock, 1000);
-
-    // Supabase
-    const SUPABASE_URL = 'https://kdzuqpoqnpwtpyoaabbx.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkenVxcG9xbnB3dHB5b2FhYmJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzMjY2MTEsImV4cCI6MjA5MDkwMjYxMX0.lilUJmguaQtOjTL61xrC73lm9ReLpIIXMWGXhWVF5bs';
-    const { createClient } = supabase;
-    const db = createClient(SUPABASE_URL, SUPABASE_KEY);
-
-    function createLogElement(log) {
-    const p = log.payload;
-    if (log.log_type !== 'Match') return createStandardLog(log); // Fallback for Anti-logs
-
-    // Build the Team HTML
-    let teamsHtml = "";
-    for (const [teamName, players] of Object.entries(p.teams)) {
-        teamsHtml += `
-            <div class="flex-1">
-                <h3 class="text-xs font-bold text-slate-500 mb-2 uppercase">${teamName}</h3>
-                <div class="space-y-2">
-                    ${players.map(player => `
-                        <div class="flex items-center gap-3 bg-black/30 p-2 rounded border-r-4" style="border-color: ${player.tierColor}">
-                            <img src="${player.image}" class="w-8 h-8 rounded bg-slate-800" onerror="this.src='https://tr.rbxcdn.com/30DAY-AvatarHeadshot-Png/150/150/AvatarHeadshot/Png/Regular'">
-                            <div class="flex-1">
-                                <div class="text-sm font-bold">${player.username}</div>
-                                <div class="text-[10px] text-slate-400">K: ${player.kills} | D: ${player.deaths}</div>
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
-        `;
-    }
-
-    return `
-        <div class="glass p-6 rounded-xl border-t-2 border-blue-500/50 shadow-2xl">
-            <div class="flex justify-between items-center mb-6">
-                <div class="text-lg font-black tracking-tighter">${p.title}</div>
-                <div class="bg-blue-600 px-3 py-1 rounded text-xl font-mono font-bold">${p.score}</div>
-            </div>
-            <div class="flex gap-6">
-                ${teamsHtml}
-            </div>
+    return `<div class="glass p-6 rounded-xl border-t-2 border-blue-500/50 shadow-2xl">
+        <div class="flex justify-between items-center mb-6">
+            <div class="text-lg font-black">${p.title}</div>
+            <div class="bg-blue-600 px-3 py-1 rounded text-xl font-mono font-bold">${p.score}</div>
         </div>
-    `;
+        <div class="flex gap-6">${teamsHtml}</div>
+    </div>`;
 }
 
-  async function fetchLogs() {
-    const { data, error } = await supabase
-        .from('logs')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(20);
-
-    if (data) {
-        const matchContainer = document.getElementById('match-logs');
-        const antiContainer = document.getElementById('anti-logs');
-        
-        // Clear old logs first
-        matchContainer.innerHTML = '';
-        antiContainer.innerHTML = '';
-
-        data.forEach(log => {
-            // This generates the string from our previous helper function
-            const logHtml = createLogElement(log); 
-
-            if (log.log_type === 'Match') {
-                // Use insertAdjacentHTML to turn the string into a real element
-                matchContainer.insertAdjacentHTML('beforeend', logHtml);
-            } else {
-                antiContainer.insertAdjacentHTML('beforeend', logHtml);
-            }
-        });
-    }
+async function fetchLogs() {
+    const { data, error } = await db.from('logs').select('*').order('created_at', { ascending: false }).limit(20);
+    if (!data) return;
+    const matchEl = document.getElementById('match-logs');
+    const antiEl = document.getElementById('anti-logs');
+    matchEl.innerHTML = ''; antiEl.innerHTML = '';
+    data.forEach(log => {
+        (log.log_type === 'Match' ? matchEl : antiEl).insertAdjacentHTML('beforeend', createLogElement(log));
+    });
 }
 
-    db.channel('schema-db-changes')
-        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'logs' }, () => {
-            fetchLogs();
-        })
-        .subscribe();
+db.channel('schema-db-changes')
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'logs' }, fetchLogs)
+    .subscribe();
 
-    fetchLogs();
+fetchLogs();
 </script>
 </body>
 </html>
