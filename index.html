@@ -441,7 +441,6 @@ function createLogElement(log) {
     for (const [teamName, players] of Object.entries(p.teams || {})) {
         teamsHtml += `<div class="flex-1"><h3 class="text-xs font-bold text-slate-500 mb-2 uppercase">${teamName}</h3><div class="space-y-2">
             ${players.map(pl => `<div class="flex items-center gap-3 bg-black/30 p-2 rounded border-r-4" style="border-color:${pl.tierColor}">
-                <img src="${pl.image}" class="w-8 h-8 rounded bg-slate-800" onerror="this.src='https://tr.rbxcdn.com/30DAY-AvatarHeadshot-Png/150/150/AvatarHeadshot/Png/Regular'">
                 <div><div class="text-sm font-bold">${pl.username}</div><div class="text-[10px] text-slate-400">K:${pl.kills} D:${pl.deaths}</div></div>
             </div>`).join('')}
         </div></div>`;
