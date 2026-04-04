@@ -463,41 +463,34 @@
     `;
 }
 
-    async function fetchLogs() {
-        const { data, error } = await db
-            .from('logs')
-            .select('*')
-            .order('created_at', { ascending: false })
-            .limit(20);
+  async function fetchLogs() {
+    const { data, error } = await supabase
+        .from('logs')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(20);
 
-        if (data) {
-            const matchContainer = document.getElementById('match-logs');
-            const antiContainer = document.getElementById('anti-logs');
+    if (data) {
+        const matchContainer = document.getElementById('match-logs');
+        const antiContainer = document.getElementById('anti-logs');
+        
+        // Clear old logs first
+        matchContainer.innerHTML = '';
+        antiContainer.innerHTML = '';
 
-            matchContainer.innerHTML = '';
-            antiContainer.innerHTML = '';
+        data.forEach(log => {
+            // This generates the string from our previous helper function
+            const logHtml = createLogElement(log); 
 
-            const matches = data.filter(l => l.log_type === 'Match');
-            const antis = data.filter(l => l.log_type !== 'Match');
-
-            if (matches.length === 0) matchContainer.innerHTML = '<div class="empty-state">NO MATCH EVENTS LOGGED</div>';
-            if (antis.length === 0) antiContainer.innerHTML = '<div class="empty-state">NO TRIGGERS DETECTED</div>';
-
-            matches.forEach(log => matchContainer.appendChild(createLogElement(log)));
-            antis.forEach(log => antiContainer.appendChild(createLogElement(log)));
-
-            document.getElementById('stat-match').textContent = matches.length;
-            document.getElementById('stat-anti').textContent = antis.length;
-            document.getElementById('stat-total').textContent = data.length;
-            document.getElementById('match-count').textContent = `${matches.length} entries`;
-            document.getElementById('anti-count').textContent = `${antis.length} entries`;
-            document.getElementById('stat-time').textContent = new Date().toLocaleTimeString('en-US', { hour12: false });
-        }
-
-        if (error) {
-            document.getElementById('footer-status').textContent = 'SUPABASE // CONNECTION ERROR';
-        }
+            if (log.log_type === 'Match') {
+                // Use insertAdjacentHTML to turn the string into a real element
+                matchContainer.insertAdjacentHTML('beforeend', logHtml);
+            } else {
+                antiContainer.insertAdjacentHTML('beforeend', logHtml);
+            }
+        });
     }
+}
 
     db.channel('schema-db-changes')
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'logs' }, () => {
