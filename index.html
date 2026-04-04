@@ -44,20 +44,27 @@
         const SUPABASE_KEY = 'your-anon-key';
         const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        function createLogElement(log) {
-            const date = new Date(log.created_at).toLocaleTimeString();
-            const color = log.log_type === 'Match' ? 'border-l-green-500' : 'border-l-red-500';
-            
-            return `
-                <div class="glass p-4 rounded-lg log-card border-l-4 ${color}">
-                    <div class="flex justify-between items-start mb-2">
-                        <span class="font-bold text-blue-300">${log.username} <span class="text-slate-500 text-xs">[${log.user_id}]</span></span>
-                        <span class="text-xs text-slate-500">${date}</span>
-                    </div>
-                    <p class="text-sm text-slate-300 leading-relaxed">${log.content}</p>
-                </div>
-            `;
-        }
+       function createLogElement(log) {
+    const date = new Date(log.created_at).toLocaleTimeString();
+    const color = log.log_type === 'Match' ? 'border-l-blue-500' : 'border-l-red-500';
+    
+    // We extract whatever keys you sent from Roblox here
+    const p = log.payload; 
+    const username = p.username || "Unknown";
+    const details = p.reason || p.msg || JSON.stringify(p); // Fallback to string if keys vary
+
+    return `
+        <div class="glass p-4 rounded-lg border-l-4 ${color} animate-in fade-in duration-500">
+            <div class="flex justify-between items-start mb-1">
+                <span class="font-bold text-slate-200">${username}</span>
+                <span class="text-[10px] uppercase tracking-widest text-slate-500">${date}</span>
+            </div>
+            <div class="text-sm text-slate-400 font-mono bg-black/20 p-2 rounded">
+                ${details}
+            </div>
+        </div>
+    `;
+}
 
         async function fetchLogs() {
             const { data, error } = await supabase
