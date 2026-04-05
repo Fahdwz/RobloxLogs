@@ -133,29 +133,50 @@ function fmt(iso) {
     return new Date(iso).toLocaleTimeString('en-US', { hour12: false });
 }
 
-function antiLog(log) {
-    const p = log.payload || {};
-    return `<div class="log-entry">
+    // Helper to create the Roblox Profile Link
+    function getProfileLink(id, name) {
+        return `<a href="https://www.roblox.com/users/${id}/profile" target="_blank" class="hover:text-white hover:underline transition-all" style="color: var(--accent); text-decoration: none;">${name}</a>`;
+    }
+
+    function antiLog(log) {
+        const p = log.payload || {};
+        const profileLink = getProfileLink(p.id || 0, p.name || 'UNKNOWN');
+
+        // Format proof as a clickable link if it exists
+        const proofHtml = p.Proof ? `<div class="mt-2 text-[9px] opacity-50 italic">PROOF: <a href="${p.Proof}" target="_blank" class="underline">${p.Proof}</a></div>` : '';
+
+        return `<div class="log-entry">
         <div class="log-top">
-            <span class="log-user">${p.username || 'UNKNOWN'}</span>
+            <span class="log-user">${profileLink} <span class="text-[9px] text-slate-600">(${p.id || '0'})</span></span>
             <span class="log-time">${fmt(log.created_at)}</span>
         </div>
-        <div class="log-body"><span class="prefix">&gt; </span>${p.reason || p.msg || JSON.stringify(p)}</div>
+        <div class="log-body">
+            <span class="prefix">&gt; REASON: </span>${p.Reason || 'No reason provided'}
+            ${proofHtml}
+        </div>
     </div>`;
-}
-
-function matchLog(log) {
-    const p = log.payload || {};
-    let teamsHtml = '';
-    for (const [name, players] of Object.entries(p.teams || {})) {
-        teamsHtml += `<div class="team-block"><div class="team-name">${name}</div>
-            ${(players || []).map(pl => `<div class="player-row" style="border-left-color:${pl.tierColor||'#00ffaa'}">
-                <span class="player-name">${pl.username}</span>
-                <span class="player-stats">K:${pl.kills??0} D:${pl.deaths??0}</span>
-            </div>`).join('')}
-        </div>`;
     }
-    return `<div class="match-card">
+
+    function matchLog(log) {
+        const p = log.payload || {};
+        let teamsHtml = '';
+
+        for (const [name, players] of Object.entries(p.teams || {})) {
+            teamsHtml += `<div class="team-block">
+            <div class="team-name">${name}</div>
+            ${(players || []).map(pl => {
+                // pl now expects 'userid' and 'username'
+                const playerLink = getProfileLink(pl.userid || 0, pl.username || 'Unknown');
+                return `
+                <div class="player-row" style="border-left-color:${pl.tierColor || '#00ffaa'}">
+                    <span class="player-name">${playerLink}</span>
+                    <span class="player-stats text-[9px]">K:${pl.kills ?? 0} D:${pl.deaths ?? 0}</span>
+                </div>`;
+            }).join('')}
+        </div>`;
+        }
+
+        return `<div class="match-card">
         <div class="match-card-header">
             <span class="match-title">${p.title || 'MATCH RESULT'}</span>
             <div class="match-meta">
@@ -165,7 +186,7 @@ function matchLog(log) {
         </div>
         <div class="teams-grid">${teamsHtml}</div>
     </div>`;
-}
+    }
 
 async function fetchLogs() {
     const { data, error } = await db.from('logs').select('*').order('created_at', { ascending: false }).limit(20);
